@@ -11,11 +11,11 @@ const App = () => {
       >
         <Route
           path="signin"
-          element={<UserAuthForm type="sing-in" />}
+          element={<UserAuthForm type="sign-in" />}
         />
         <Route
           path="signup"
-          element={<UserAuthForm type="sing-up" />}
+          element={<UserAuthForm type="sign-up" />}
         />
       </Route>
     </Routes>
