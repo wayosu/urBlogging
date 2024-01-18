@@ -1,13 +1,82 @@
-import { Link } from "react-router-dom";
+import { useContext, useRef } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { Toaster, toast } from "react-hot-toast";
+import axios from "axios";
 import InputBox from "../components/input.component";
 import googleIcon from "../imgs/google.png";
 import AnimationWrapper from "../common/page-animation";
+import { storeInSession } from "../common/session";
+import { UserContext } from "../App";
 
 const UserAuthForm = ({ type }) => {
-  return (
+  const authForm = useRef();
+
+  let {
+    userAuth: { accessToken },
+    setUserAuth,
+  } = useContext(UserContext);
+
+  const userAuthThroughServer = (serverRoute, formData) => {
+    axios
+      .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
+      .then(({ data }) => {
+        storeInSession("user", JSON.stringify(data));
+        setUserAuth(data);
+      })
+      .catch(({ response }) => {
+        toast.error(response.data.error);
+      });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    let serverRoute = type == "sign-in" ? "/signin" : "/signup";
+
+    let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; // regex for email
+    let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for password
+
+    // Form Data
+    let form = new FormData(formElement);
+    let formData = {};
+
+    form.forEach((value, key) => {
+      formData[key] = value;
+    });
+
+    let { fullname, email, password } = formData;
+
+    // Form Validation
+    if (fullname) {
+      if (fullname.length < 3) {
+        return toast.error("Fullname must be at least 3 characters long");
+      }
+    }
+    if (!email.length) {
+      return toast.error("Email cannot be empty");
+    }
+    if (!emailRegex.test(email)) {
+      return toast.error("Email is not valid");
+    }
+    if (!passwordRegex.test(password)) {
+      return toast.error(
+        "Password should be between 6 to 20 characters which contain at least one numeric digit, one uppercase and one lowercase letter"
+      );
+    }
+
+    userAuthThroughServer(serverRoute, formData);
+  };
+
+  return accessToken ? (
+    <Navigate to="/" />
+  ) : (
     <AnimationWrapper keyValue={type}>
       <section className="h-cover flex items-center justify-center">
-        <form className="w-[80%] max-w-[400px]">
+        <Toaster containerStyle={{ top: 50 }} />
+        <form
+          id="formElement"
+          className="w-[80%] max-w-[400px]"
+        >
           <h1 className="text-4xl font-gelasio capitalize text-center mb-24">
             {type === "sign-in" ? "Welcome Back" : "Join Us Today"}
           </h1>
@@ -35,7 +104,10 @@ const UserAuthForm = ({ type }) => {
             icon="fi fi-rr-key"
           />
 
-          <button className="btn-dark w-[90%] center mt-14">
+          <button
+            onClick={handleSubmit}
+            className="btn-dark w-[90%] center mt-14"
+          >
             {type.replace("-", " ")}
           </button>
 
