@@ -7,6 +7,7 @@ import googleIcon from "../imgs/google.png";
 import AnimationWrapper from "../common/page-animation";
 import { storeInSession } from "../common/session";
 import { UserContext } from "../App";
+import { authWithGoogle } from "../common/firebase";
 
 const UserAuthForm = ({ type }) => {
   const authForm = useRef();
@@ -65,6 +66,25 @@ const UserAuthForm = ({ type }) => {
     }
 
     userAuthThroughServer(serverRoute, formData);
+  };
+
+  const handleGoogleAuth = (e) => {
+    e.preventDefault();
+
+    authWithGoogle()
+      .then((user) => {
+        let serverRoute = "/google-auth";
+
+        let formData = {
+          accessToken: user.accessToken,
+        };
+
+        userAuthThroughServer(serverRoute, formData);
+      })
+      .catch((err) => {
+        toast.error("trouble login through google");
+        console.log(err);
+      });
   };
 
   return accessToken ? (
@@ -131,6 +151,7 @@ const UserAuthForm = ({ type }) => {
           </div>
 
           <button
+            onClick={handleGoogleAuth}
             className="
               btn-dark 
               flex 

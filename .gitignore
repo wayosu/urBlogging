@@ -1,3 +1,4 @@
 node_modules
-
+.gitignore
 .env
+urblogging-web-app-firebase-adminsdk-dlxmp-d83072725f.json
