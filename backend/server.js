@@ -4,7 +4,6 @@ import "dotenv/config";
 import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
-import cors from "cors";
 import admin from "firebase-admin";
 import { getAuth } from "firebase-admin/auth";
 import serviceAccountKey from "./urblogging-web-app-firebase-adminsdk-dlxmp-d83072725f.json" assert { type: "json" };
@@ -18,6 +17,7 @@ let PORT = 3000;
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccountKey),
+  storageBucket: "urblogging-web-app.appspot.com",
 });
 
 // regex for email and password
@@ -26,12 +26,29 @@ let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for pass
 
 // middleware
 server.use(express.json());
-server.use(cors());
 
 // connecting to database
 mongoose.connect(process.env.DB_LOCATION, {
   autoIndex: true,
 });
+
+// setting up firebase storage
+const bucket = admin.storage().bucket();
+
+// function to generate upload url
+const generateUploadURL = async () => {
+  const date = new Date();
+  const imageName = `${nanoid()}-${date.getTime()}.jpeg`;
+
+  const file = bucket.file(imageName);
+  const [url] = await file.getSignedUrl({
+    action: "write",
+    expires: Date.now() + 60 * 1000,
+    contentType: "image/jpeg",
+  });
+
+  return url;
+};
 
 // function to format data to send
 const formatDataToSend = (user) => {
@@ -62,6 +79,17 @@ const generateUsername = async (email) => {
 
   return username;
 };
+
+// route upload image
+server.get("/get-upload-url", async (req, res) => {
+  try {
+    const url = await generateUploadURL();
+    res.status(200).json({ uploadURL: url });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // route for signup
 server.post("/signup", (req, res) => {
@@ -139,12 +167,9 @@ server.post("/signin", (req, res) => {
           }
         });
       } else {
-        return res
-          .status(403)
-          .json({
-            error:
-              "Account was created using google. Try logging in with google",
-          });
+        return res.status(403).json({
+          error: "Account was created using google. Try logging in with google",
+        });
       }
     })
     .catch((err) => {
