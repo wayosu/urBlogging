@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { EditorContext } from "../pages/editor.pages";
 
-const Tag = ({ key, tagIndex, tag }) => {
+const Tag = ({ tagIndex, tag }) => {
   let {
     blog,
     blog: { tags },
@@ -32,7 +32,6 @@ const Tag = ({ key, tagIndex, tag }) => {
 
   return (
     <div
-      key={key}
       className="
         relative 
         p-2 px-5 pr-10
