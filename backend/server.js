@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import "dotenv/config";
 import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
+import cors from "cors";
 import jwt from "jsonwebtoken";
 import admin from "firebase-admin";
 import { getAuth } from "firebase-admin/auth";
@@ -26,6 +27,7 @@ let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for pass
 
 // middleware
 server.use(express.json());
+server.use(cors());
 
 // connecting to database
 mongoose.connect(process.env.DB_LOCATION, {

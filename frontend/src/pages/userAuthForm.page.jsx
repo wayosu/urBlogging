@@ -10,8 +10,6 @@ import { UserContext } from "../App";
 import { authWithGoogle } from "../common/firebase";
 
 const UserAuthForm = ({ type }) => {
-  const authForm = useRef();
-
   let {
     userAuth: { accessToken },
     setUserAuth,
